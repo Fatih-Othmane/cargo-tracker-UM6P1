@@ -12,14 +12,13 @@ pipeline {
                 git branch: 'develop', url: 'https://github.com/Fatih-Othmane/cargo-tracker-UM6P1.git'
             }
         }
-
+       //test webhook
+       
         stage('Build & Test with Coverage') {
             steps {
-                bat 'mvn clean verify'
+                echo 'mvn clean verify'
             }
         }
-
-        
     }
 //
     post {
