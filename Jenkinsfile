@@ -12,6 +12,12 @@ pipeline {
                 git branch: 'develop', url: 'https://github.com/akito-sama/cargo-tracker.git'
             }
         }
+    stage('Debug Path') {
+            steps {
+                bat 'set' // This prints all environment variables
+                bat 'where mvn' // This checks if mvn is in the path
+            }
+        }
 
         stage('Build & Test with Coverage') {
             steps {
