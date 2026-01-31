@@ -2,54 +2,48 @@ pipeline {
     agent any
 
     triggers {
-        githubPush()
+        githubPush()   
     }
 
     stages {
 
-        stage('1 - Clone Repository') {
+        stage('Clone') {
             steps {
-                git branch: 'develop',
-                    url: 'https://github.com/Fatih-Othmane/cargo-tracker-UM6P1.git'
+                git branch: 'develop', url: 'https://github.com/Fatih-Othmane/cargo-tracker-UM6P1.git'
             }
         }
 
-        stage('2 - Compile Project') {
+        stage('Build & Test with Coverage') {
             steps {
-                bat 'mvn clean compile'
+                bat 'mvn clean verify'
             }
         }
 
-        stage('3 - Run Unit Tests') {
-            steps {
-                bat 'mvn test'
+        stage('SonarQube Analysis') {
+            environment {
+                SONAR_TOKEN = credentials('sonar-token-id')
             }
-        }
-
-        stage('4 - Package Application') {
             steps {
-                bat 'mvn package'
-            }
-        }
-
-        stage('5 - SonarQube Analysis') {
-            steps {
-                withSonarQubeEnv('SonarQubeServer') {
-                    bat 'mvn clean verify sonar:sonar'
+                withSonarQubeEnv('SonarQube Local') {
+                    bat """
+                        mvn sonar:sonar ^
+                        -Dsonar.projectKey=cargo-tracker ^
+                        -Dsonar.projectName="Cargo Tracker" ^
+                        -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml ^
+                        -Dsonar.host.url=http://localhost:9000 ^
+                        -Dsonar.token=%SONAR_TOKEN%
+                    """
                 }
             }
         }
     }
-
+//
     post {
-        always {
-            junit 'target/surefire-reports/*.xml'
-        }
         success {
-            echo 'BUILD SUCCESS'
+            echo 'Build et analyse terminés avec succès !'
         }
         failure {
-            echo 'BUILD FAILURE'
+            echo 'Échec du build ou des tests.'
         }
     }
 }
