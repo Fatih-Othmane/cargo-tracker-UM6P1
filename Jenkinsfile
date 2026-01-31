@@ -2,54 +2,54 @@ pipeline {
     agent any
 
     triggers {
-        githubPush()   
+        githubPush()
     }
 
     stages {
 
-        stage('Clone') {
+        stage('1 - Clone Repository') {
             steps {
-                git branch: 'develop', url: 'https://github.com/akito-sama/cargo-tracker.git'
-            }
-        }
-    stage('Debug Path') {
-            steps {
-                bat 'set' // This prints all environment variables
-                bat 'where mvn' // This checks if mvn is in the path
+                git branch: 'develop',
+                    url: 'https://github.com/Fatih-Othmane/cargo-tracker-UM6P1.git'
             }
         }
 
-        stage('Build & Test with Coverage') {
+        stage('2 - Compile Project') {
             steps {
-                bat 'mvn clean verify'
+                bat 'mvn clean compile'
             }
         }
 
-        stage('SonarQube Analysis') {
-            environment {
-                SONAR_TOKEN = credentials('sonar-token-id')
-            }
+        stage('3 - Run Unit Tests') {
             steps {
-                withSonarQubeEnv('SonarQube Local') {
-                    bat """
-                        mvn sonar:sonar ^
-                        -Dsonar.projectKey=cargo-tracker ^
-                        -Dsonar.projectName="Cargo Tracker" ^
-                        -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml ^
-                        -Dsonar.host.url=http://localhost:9000 ^
-                        -Dsonar.token=%SONAR_TOKEN%
-                    """
+                bat 'mvn test'
+            }
+        }
+
+        stage('4 - Package Application') {
+            steps {
+                bat 'mvn package'
+            }
+        }
+
+        stage('5 - SonarQube Analysis') {
+            steps {
+                withSonarQubeEnv('SonarQubeServer') {
+                    bat 'mvn clean verify sonar:sonar'
                 }
             }
         }
     }
-//
+
     post {
+        always {
+            junit 'target/surefire-reports/*.xml'
+        }
         success {
-            echo 'Build et analyse terminés avec succès !'
+            echo 'BUILD SUCCESS'
         }
         failure {
-            echo 'Échec du build ou des tests.'
+            echo 'BUILD FAILURE'
         }
     }
 }
