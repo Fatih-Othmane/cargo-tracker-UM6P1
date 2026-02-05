@@ -9,16 +9,17 @@ pipeline {
 
         stage('Clone') {
             steps {
-                git branch: 'develop', url: 'https://github.com/Fatih-Othmane/cargo-tracker-UM6P1.git'
+                git branch: 'main', url: 'https://github.com/Fatih-Othmane/cargo-tracker-UM6P1.git'
             }
         }
-       //test webhook
-       
+
         stage('Build & Test with Coverage') {
             steps {
                 echo 'mvn clean verify'
             }
         }
+
+        
     }
 //
     post {
